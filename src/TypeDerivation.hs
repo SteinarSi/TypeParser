@@ -6,8 +6,7 @@ import Data.STRef (STRef, newSTRef, readSTRef, modifySTRef')
 import Data.List (find)
 import Data.Maybe (fromJust)
 
-import Expr
-import Parser
+import Expr (Expr(..))
 
 
 type TypeBank s = STRef s [Type]
@@ -54,7 +53,7 @@ derive (Apply f arg) ps ts bank lines = do
     (t1:_) <- drawTypes 1 bank
     modifySTRef' bank tail
     modifySTRef' lines (("(T3) " ++ show arg ++ " :: " ++ show t1) : )
-    modifySTRef' lines (("     " ++ show f   ++ " :: " ++ show (t1 : ts)) : )
+    modifySTRef' lines (("     " ++ show f   ++ " :: " ++ show (t1 : ts)) :)
     eqs1 <- derive arg ps [t1] bank lines
     eqs2 <- derive f ps (t1 : ts) bank lines
     return (eqs1 ++ eqs2)

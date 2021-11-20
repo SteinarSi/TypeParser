@@ -4,7 +4,7 @@ import Text.Parsec hiding (parse)
 import Text.Parsec.Char (spaces)
 import Text.ParserCombinators.Parsec.Char (char)
 
-import Expr
+import Expr (Expr(..), VarName)
 
 {-
 Grammatikk:

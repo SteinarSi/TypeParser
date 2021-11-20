@@ -9,7 +9,7 @@ data Rule = U1 | U2 | U3 | U4 | U5 | U6 deriving Show
 martelliMontanari :: [Equation] -> [String]
 martelliMontanari eqs = show eqs : case findRule eqs of
         Nothing -> "\nFinished!" : [show (head eqs)]
-        Just (U6, eq) ->  ["Occurs check, cannot construct the infinite type " ++ show eq]
+        Just (U6, eq) ->  ["\nOccurs check, cannot construct the infinite type " ++ show eq ++ ".", "This expression is therefore misstyped."]
         Just (r,  eq) -> ("\nRule " ++ show r ++ " on " ++ show eq ++ ":") : martelliMontanari (applyRule eqs eq r)
 
 applyRule :: [Equation] -> Equation -> Rule -> [Equation]
@@ -45,12 +45,14 @@ contains [] _ = False
 contains ((NType ts):tss) t = contains ts t || contains tss t
 contains (t1:tss) t2 = t1 == t2 || contains tss t2
 
+--U2
 zipEquation :: Equation -> [Equation]
 zipEquation (Equation [a] b)  = [Equation [a] b ]
 zipEquation (Equation  a [b]) = [Equation  a [b]]
 zipEquation (Equation (a:as) (b:bs)) = Equation [a] [b] : zipEquation (Equation as bs)
 zipEquation (Equation _ _)  = error "One of the lists was empty when it shouldn't have been"
 
+--U5
 replace :: [Equation] -> Equation -> [Equation]
 replace eqs (Equation [UType a] b) = map (\(Equation a2 b2) -> Equation (replace'' a2) (replace'' b2)) eqs
     where replace' (NType ts) = NType (map replace' ts)
