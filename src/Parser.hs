@@ -6,36 +6,31 @@ import Text.ParserCombinators.Parsec.Char (char)
 
 import Expr (Expr(..), VarName)
 
+
+import Debug.Trace
+
 {-
 Grammatikk:
 
         Lambda         Apply
-Expr => \Var -> Expr | Function Argument | Var | (Expr)
+Expr => \Var -> Expr | Function Argument* | Var | (Expr)
 Function => (Expr) | Var
 Argument => (Expr) | Var
 Var    => Letter*
 Letter => a | b | ... | z | A | B | ... | Z
 -}
 
-parseTest :: String -> Parsec String [VarName] c -> Either ParseError c
-parseTest text rule = runParser rule [] "(source)" text
-
 parse :: String -> Either ParseError Expr
 parse text = runParser expr [] "(source)" text
 
---ps <- many1 (parameter >>= \p -> spaces >> return p)
---modifyState (ps ++ )
---return (foldr Lambda e ps)
---f <- try (spaces >> function >>= \f -> spaces >> return f)
 expr :: Parsec String [VarName] Expr
 expr = try (do
         _ <- spaces
         _ <- char '\\'
         _ <- spaces
-        ps <- many1 (parameter >>= \p -> spaces >> return p)
+        ps <- many1 (parameter >>= \p -> spaces >> modifyState (p :) >> return p)
         _ <- spaces
         _ <- string "->"
-        modifyState (ps ++ )
         _ <- spaces
         e <- expr
         return (foldr Lambda e ps)
@@ -59,7 +54,11 @@ argument = try (do
     ) <|> boundedVar
 
 parameter :: Parsec String [VarName] VarName
-parameter = many1 (oneOf legalLetters)
+parameter = do
+    cs <- many1 (oneOf legalLetters)
+    boundedVars <- getState
+    if elem cs boundedVars then fail ("Ambigious reference to variable " ++ cs ++ ", which was bound by multiple lambdas")
+    else return cs
     
 boundedVar :: Parsec String [VarName] Expr
 boundedVar = try (do
@@ -70,4 +69,4 @@ boundedVar = try (do
     )
 
 legalLetters :: [Char]
-legalLetters = ['a'..'z'] ++ ['A'..'Z']
+legalLetters = ['a'..'z'] ++ "æøå" ++ ['A'..'Z'] ++ "ÆØÅ"
