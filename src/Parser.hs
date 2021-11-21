@@ -31,6 +31,7 @@ expr :: Parsec String [VarName] Expr
 expr = try (do
         _ <- spaces
         _ <- char '\\'
+        _ <- spaces
         ps <- many1 (parameter >>= \p -> spaces >> return p)
         _ <- spaces
         _ <- string "->"
@@ -40,7 +41,8 @@ expr = try (do
         return (foldr Lambda e ps)
     ) <|> do
         f <- function
-        args <- many (spaces >> argument)
+        args <- many (try (spaces >> argument))
+        _ <- spaces
         return (foldl Apply f args)
 
 function :: Parsec String [VarName] Expr

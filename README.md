@@ -20,6 +20,6 @@ After installing, type `stack run` in the terminal to start the program.
 
 ## Usage
 
-This is an interactive program that asks the user for lambda expressions and show how to infer their types. It does *not* support expressions with constants; any reference to a variable or function not bound by a lambda will result in an error.
+This is an interactive program that asks the user for lambda expressions and shows how to infer their types. It does *not* support expressions with constants; any reference to a variable, function or literal not bound by a lambda will result in an error.
 
 The lambda expressions have to be typed in a Haskell-like syntax, that is `\x -> \y -> y x` and not `λx.λy.yx`.
