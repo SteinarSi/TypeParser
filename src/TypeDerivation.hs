@@ -1,7 +1,7 @@
 module TypeDerivation(Type(..), Equation(..), hindleyMilner) where
 
 import Control.Monad.ST (ST, runST)
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 import Data.STRef (STRef, newSTRef, readSTRef, modifySTRef')
 import Data.List (find)
 import Data.Maybe (fromJust)
@@ -46,13 +46,14 @@ derive (Var x) ps ts bank lines len = do
     modifySTRef' lines (("(T2) " ++ replicate (len - 5) ' ' ++ show tp ++ " = " ++ show ts) :)
     return [Equation [tp] ts]
 derive (Lambda p e) ps ts bank lines len = do
-    (t1:t2:_) <- drawTypes 2 bank
+    t1 <- drawType bank
+    t2 <- drawType bank
     let line = "(T4) " ++ p ++ " :: " ++ show t1 ++ " | " ++ show e ++ " :: " ++ show t2
     modifySTRef' lines ((line ++ replicate (len - length line) ' '  ++ show ts ++ " = " ++ show t1 ++ " -> " ++ show t2) : )
     eqs <- derive e (Param p t1 : ps) [t2] bank lines len
     return ( Equation ts [t1, t2] : eqs)
 derive (Apply f arg) ps ts bank lines len = do
-    (t1:_) <- drawTypes 1 bank
+    t1 <- drawType bank
     let maxlength = max (length (show f)) (length (show arg))
     modifySTRef' lines (("(T3) | " ++ show arg ++ replicate (maxlength - length (show arg)) ' ' ++ " :: " ++ show t1) : )
     modifySTRef' lines (("     | " ++ show f   ++ replicate (maxlength - length (show f  )) ' ' ++ " :: " ++ show (t1 : ts)) :)
@@ -60,11 +61,11 @@ derive (Apply f arg) ps ts bank lines len = do
     eqs2 <- derive f ps (t1 : ts) bank lines len
     return (eqs1 ++ eqs2)
 
-drawTypes :: Int -> TypeBank s -> ST s [Type]
-drawTypes 0 _ = return []
-drawTypes n bank = do
-    t  <- liftM head (readSTRef bank)
+drawType :: TypeBank s -> ST s Type
+drawType bank = do
+    t  <- readSTRef bank
+    when (null t) (error "Sorry, we ran out of type variable names! This expression is too large, please give me a smaller expression instead.")
     modifySTRef' bank tail
-    ts <- drawTypes (n-1) bank
-    return (t:ts)
+    return (head t)
+
 

@@ -19,8 +19,6 @@ applyRule eqs eq@(Equation a b) U4 = delete eq eqs ++ [Equation b a]
 applyRule eqs eq U5 = map lower (replace eqs eq)
 
 
-
-
 findRule :: [Equation] -> Maybe (Rule, Equation)
 findRule eqs = listToMaybe $ catMaybes (map (\(r, f) -> f eqs >>= Just . (,) r) [(U1, findU1), (U6, findU6), (U2, findU2), (U4, findU4), (U5, findU5)])
 

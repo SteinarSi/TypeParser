@@ -6,9 +6,6 @@ import Text.ParserCombinators.Parsec.Char (char)
 
 import Expr (Expr(..), VarName)
 
-
-import Debug.Trace
-
 {-
 Grammatikk:
 
@@ -57,7 +54,7 @@ parameter :: Parsec String [VarName] VarName
 parameter = do
     cs <- many1 (oneOf legalLetters)
     boundedVars <- getState
-    if elem cs boundedVars then fail ("Ambigious reference to variable " ++ cs ++ ", which was bound by multiple lambdas")
+    if elem cs boundedVars then fail ("Ambiguous reference to variable " ++ cs ++ ", which was bound by multiple lambdas")
     else return cs
     
 boundedVar :: Parsec String [VarName] Expr
