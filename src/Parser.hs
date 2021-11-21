@@ -23,22 +23,25 @@ parseTest text rule = runParser rule [] "(source)" text
 parse :: String -> Either ParseError Expr
 parse text = runParser expr [] "(source)" text
 
+--ps <- many1 (parameter >>= \p -> spaces >> return p)
+--modifyState (ps ++ )
+--return (foldr Lambda e ps)
+--f <- try (spaces >> function >>= \f -> spaces >> return f)
 expr :: Parsec String [VarName] Expr
 expr = try (do
         _ <- spaces
         _ <- char '\\'
-        p <- parameter
+        ps <- many1 (parameter >>= \p -> spaces >> return p)
         _ <- spaces
         _ <- string "->"
-        modifyState (p : )
+        modifyState (ps ++ )
         _ <- spaces
         e <- expr
-        return (Lambda p e)
-    ) <|> (do
-        f <- try (spaces >> function >>= \f -> many1 (char ' ') >> return f)
-        arg <- argument
-        return (Apply f arg)
-    ) <|> boundedVar <|> argument
+        return (foldr Lambda e ps)
+    ) <|> do
+        f <- function
+        args <- many (spaces >> argument)
+        return (foldl Apply f args)
 
 function :: Parsec String [VarName] Expr
 function = argument

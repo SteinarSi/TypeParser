@@ -14,7 +14,7 @@ main = do
         Left err -> print err >> main
         Right ex -> do
             putStrLn ("\nI parsed your expression like this: \n" ++ show ex
-                ++ "\n If this is erroneous, make sure you type lambdas out fully, "
+                ++ "\nIf this is erroneous, make sure you type lambdas out fully, "
                 ++ "and have left-associative parantheses on all function applications on more than one arguemnt.\n\n")
             let (lines, eqs) = hindleyMilner ex
             mapM_ putStrLn lines
