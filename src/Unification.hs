@@ -4,7 +4,7 @@ import TypeDerivation (Equation(..), Type(..))
 import Data.List (find, delete)
 import Data.Maybe (listToMaybe, catMaybes)
 
-data Rule = U1 | U2 | U3 | U4 | U5 | U6 deriving Show
+data URule = U1 | U2 | U3 | U4 | U5 | U6 deriving Show
 
 martelliMontanari :: [Equation] -> [String]
 martelliMontanari eqs = show eqs : case findRule eqs of
@@ -12,14 +12,14 @@ martelliMontanari eqs = show eqs : case findRule eqs of
         Just (U6, eq) ->  ["\nOccurs check, cannot construct the infinite type " ++ show eq ++ ".", "This expression is therefore misstyped."]
         Just (r,  eq) -> ("\nRule " ++ show r ++ " on " ++ show eq ++ ":") : martelliMontanari (applyRule eqs eq r)
 
-applyRule :: [Equation] -> Equation -> Rule -> [Equation]
+applyRule :: [Equation] -> Equation -> URule -> [Equation]
 applyRule eqs eq U1 = delete eq eqs
 applyRule eqs eq U2 = delete eq eqs ++ map lower (zipEquation eq)
 applyRule eqs eq@(Equation a b) U4 = delete eq eqs ++ [Equation b a]
 applyRule eqs eq U5 = map lower (replace eqs eq)
 
 
-findRule :: [Equation] -> Maybe (Rule, Equation)
+findRule :: [Equation] -> Maybe (URule, Equation)
 findRule eqs = listToMaybe $ catMaybes (map (\(r, f) -> f eqs >>= Just . (,) r) [(U1, findU1), (U6, findU6), (U2, findU2), (U4, findU4), (U5, findU5)])
 
 findU1 :: [Equation] -> Maybe Equation

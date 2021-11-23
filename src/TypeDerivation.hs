@@ -13,6 +13,7 @@ type TypeBank s = STRef s [Type]
 data Type       = UType Char | NType [Type] deriving Eq
 data Param      = Param String Type         deriving Eq
 data Equation   = Equation [Type] [Type]    deriving Eq
+data TRule      = T2 Type [Type] | T3 Expr Expr Type [Type] | T4 String Type Expr Type [Type]
 
 
 instance Show Type where
@@ -35,28 +36,25 @@ hindleyMilner :: Expr -> ([String], [Equation])
 hindleyMilner e = runST $ do
     bank <- newSTRef typeBank 
     let initial = show e ++ " :: t"
-    lines <- newSTRef [initial, "Type derivation:"]
+    lines <- newSTRef []
     eqs <- derive e [] [UType 't'] bank lines (length initial + 20)
     ls <- readSTRef lines
-    return (reverse ls, eqs)
+    return (reverse ("Type derivation:" : (show e ++ " :: t") : map (draw (length initial  + 20)) ls), eqs)
 
-derive :: Expr -> [Param] -> [Type] -> TypeBank s -> STRef s [String] -> Int -> ST s [Equation]
+derive :: Expr -> [Param] -> [Type] -> TypeBank s -> STRef s [TRule] -> Int -> ST s [Equation]
 derive (Var x) ps ts bank lines len = do
     let Param _ tp = fromJust (find (\(Param name _) -> name == x) ps)
-    modifySTRef' lines (("(T2) " ++ replicate (len - 5) ' ' ++ show tp ++ " = " ++ show ts) :)
+    modifySTRef' lines (T2 tp ts : )
     return [Equation [tp] ts]
 derive (Lambda p e) ps ts bank lines len = do
     t1 <- drawType bank
     t2 <- drawType bank
-    let line = "(T4) " ++ p ++ " :: " ++ show t1 ++ " | " ++ show e ++ " :: " ++ show t2
-    modifySTRef' lines ((line ++ replicate (len - length line) ' '  ++ show ts ++ " = " ++ show t1 ++ " -> " ++ show t2) : )
+    modifySTRef' lines (T4 p t1 e t2 ts : )
     eqs <- derive e (Param p t1 : ps) [t2] bank lines len
     return ( Equation ts [t1, t2] : eqs)
 derive (Apply f arg) ps ts bank lines len = do
     t1 <- drawType bank
-    let maxlength = max (length (show f)) (length (show arg))
-    modifySTRef' lines (("(T3) | " ++ show arg ++ replicate (maxlength - length (show arg)) ' ' ++ " :: " ++ show t1) : )
-    modifySTRef' lines (("     | " ++ show f   ++ replicate (maxlength - length (show f  )) ' ' ++ " :: " ++ show (t1 : ts)) :)
+    modifySTRef' lines (T3 f arg t1 ts :)
     eqs1 <- derive arg ps [t1] bank lines len
     eqs2 <- derive f ps (t1 : ts) bank lines len
     return (eqs1 ++ eqs2)
@@ -68,4 +66,13 @@ drawType bank = do
     modifySTRef' bank tail
     return (head t)
 
+
+--data TRule = T2 Type [Type] | T3 Expr Expr Type [Type] | T4 String Type Expr Type [Type]
+draw :: Int -> TRule -> String
+draw n (T2 a ts) = "(T2)" ++ replicate (n-4) ' ' ++ show a ++ " = " ++ show ts
+draw n (T3 f arg t ts) = let m = max (length (show f)) (length (show arg))
+                         in  "(T3) | " ++ show arg ++ replicate (m - length (show arg)) ' ' ++ " :: " ++ show t
+                        ++ "\n     | " ++ show f   ++ replicate (m - length (show f  )) ' ' ++ " :: " ++ show (t:ts)
+draw n (T4 p t1 e t2 ts) = let line = "(T4) " ++ show p ++ " :: " ++ show t1 ++ " | " ++ show e ++ " :: " ++ show t2
+                         in  line ++ replicate (n - length line) ' ' ++ show ts ++ " = " ++ show t1 ++ " -> " ++ show t2
 

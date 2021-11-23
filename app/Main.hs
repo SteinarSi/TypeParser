@@ -4,7 +4,6 @@ import Unification (martelliMontanari)
 import TypeDerivation (hindleyMilner)
 import Parser (parse)
 
---TODO: Få ligningene fra typeavledningen til å se penere ut. 
 
 main :: IO ()
 main = do
