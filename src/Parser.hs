@@ -1,4 +1,4 @@
-module Parser(parse) where
+module Parser (parse) where
 
 import Text.Parsec hiding (parse)
 import Text.Parsec.Char (spaces)
