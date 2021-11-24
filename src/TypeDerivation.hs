@@ -1,9 +1,9 @@
-module TypeDerivation(Type(..), Equation(..), hindleyMilner) where
+module TypeDerivation(Type(..), Equation(..), hindleyMilner, simplify) where
 
 import Control.Monad.ST (ST, runST)
 import Control.Monad (liftM, when)
 import Data.STRef (STRef, newSTRef, readSTRef, modifySTRef')
-import Data.List (find)
+import Data.List (find, foldl')
 import Data.Maybe (fromJust)
 
 import Expr (Expr(..))
@@ -74,5 +74,18 @@ draw n (T3 f arg t ts) = let m = max (length (show f)) (length (show arg))
                          in  "(T3) | " ++ show arg ++ replicate (m - length (show arg)) ' ' ++ " :: " ++ show t
                         ++ "\n     | " ++ show f   ++ replicate (m - length (show f  )) ' ' ++ " :: " ++ show (t:ts)
 draw n (T4 p t1 e t2 ts) = let line = "(T4) " ++ show p ++ " :: " ++ show t1 ++ " | " ++ show e ++ " :: " ++ show t2
-                         in  line ++ replicate (n - length line) ' ' ++ show ts ++ " = " ++ show t1 ++ " -> " ++ show t2
+                           in  line ++ replicate (n - length line) ' ' ++ show ts ++ " = " ++ show t1 ++ " -> " ++ show t2
 
+simplify :: Equation -> Equation
+simplify (Equation a b) = let (_, _, NType nt) = simplify' typeBank [] (NType b)
+                          in  (Equation a nt)
+    where
+        simplify' :: [Type] -> [(Type, Type)] -> Type -> ([Type], [(Type, Type)], Type)
+        simplify' bank tmap t@(UType _) = case lookup t tmap of
+            Nothing -> (tail bank, (t, head bank) : tmap, head bank)
+            Just t0 -> (bank, tmap, t0)
+        simplify' bank tmap (NType ts) = let (newbank, newmap, newts) = foldl' (\(b, tm, types) t -> 
+                                                        let (nb, ntm, nt) = simplify' b tm t 
+                                                        in  (nb, ntm, nt : types)
+                                                    ) (bank, tmap, []) ts
+                                         in  (newbank, newmap, NType (reverse newts))

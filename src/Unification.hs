@@ -1,6 +1,6 @@
 module Unification(martelliMontanari) where
 
-import TypeDerivation (Equation(..), Type(..))
+import TypeDerivation (Equation(..), Type(..), simplify)
 import Data.List (find, delete)
 import Data.Maybe (listToMaybe, catMaybes)
 
@@ -8,7 +8,7 @@ data URule = U1 | U2 | U3 | U4 | U5 | U6 deriving Show
 
 martelliMontanari :: [Equation] -> [String]
 martelliMontanari eqs = show eqs : case findRule eqs of
-        Nothing -> "\nFinished!" : [show (head eqs)]
+        Nothing -> "\nFinished!" : [show (simplify (head eqs))]
         Just (U6, eq) ->  ["\nOccurs check, cannot construct the infinite type " ++ show eq ++ ".", "This expression is therefore misstyped."]
         Just (r,  eq) -> ("\nRule " ++ show r ++ " on " ++ show eq ++ ":") : martelliMontanari (applyRule eqs eq r)
 
