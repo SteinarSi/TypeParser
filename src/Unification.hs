@@ -8,7 +8,7 @@ data URule = U1 | U2 | U3 | U4 | U5 | U6 deriving Show
 
 martelliMontanari :: [Equation] -> [String]
 martelliMontanari eqs = show eqs : case findRule eqs of
-        Nothing -> "\nFinished!" : [show (simplify (head eqs))]
+        Nothing -> "\nUnification finished. Rewriting to lower characters:" : [show (simplify (head eqs))]
         Just (U6, eq) ->  ["\nOccurs check, cannot construct the infinite type " ++ show eq ++ ".", "This expression is therefore misstyped."]
         Just (r,  eq) -> ("\nRule " ++ show r ++ " on " ++ show eq ++ ":") : martelliMontanari (applyRule eqs eq r)
 

@@ -39,7 +39,8 @@ hindleyMilner e = runST $ do
     lines <- newSTRef []
     eqs <- derive e [] [UType 't'] bank lines (length initial + 20)
     ls <- readSTRef lines
-    return (reverse ("Type derivation:" : (show e ++ " :: t") : map (draw (length initial  + 20)) ls), eqs)
+    --return (reverse ("Type derivation:" : (show e ++ " :: t") : map (draw (length initial  + 20)) ls), eqs)
+    return ("Type derivation:" : (show e ++ " :: t") : reverse (map (draw (length initial  + 20)) ls), eqs)
 
 derive :: Expr -> [Param] -> [Type] -> TypeBank s -> STRef s [TRule] -> Int -> ST s [Equation]
 derive (Var x) ps ts bank lines len = do
@@ -67,7 +68,6 @@ drawType bank = do
     return (head t)
 
 
---data TRule = T2 Type [Type] | T3 Expr Expr Type [Type] | T4 String Type Expr Type [Type]
 draw :: Int -> TRule -> String
 draw n (T2 a ts) = "(T2)" ++ replicate (n-4) ' ' ++ show a ++ " = " ++ show ts
 draw n (T3 f arg t ts) = let m = max (length (show f)) (length (show arg))

@@ -18,7 +18,7 @@ Letter => a | b | ... | z | A | B | ... | Z
 -}
 
 parse :: String -> Either ParseError Expr
-parse text = runParser expr [] "(source)" text
+parse = runParser ((eof >>) . return =<< expr) [] "(source)"
 
 expr :: Parsec String [VarName] Expr
 expr = try (do
